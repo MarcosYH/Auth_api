@@ -127,6 +127,44 @@ app.post("/login", (request, response) => {
     });
 });
 
+//user-info endpoint 
+app.get('/user-info', (request, response) => {
+  // Vérifier si l'utilisateur est authentifié (par exemple, à l'aide d'un jeton d'authentification)
+  const token = request.headers.authorization;
+
+  if (!token) {
+    // Jeton d'authentification manquant
+    return response.status(401).json({ message: 'Authentification requise' });
+  }
+
+  try {
+    // Vérifier et décoder le jeton d'authentification
+    const decodedToken = jwt.verify(token, 'your-secret-key');
+
+    // Récupérer l'ID de l'utilisateur connecté depuis le jeton d'authentification
+    const userId = decodedToken.userId;
+
+    // Rechercher l'utilisateur correspondant dans la base de données
+    User.findById(userId)
+      .then(user => {
+        if (user) {
+          // Utilisateur trouvé, renvoyer ses informations
+          response.json({ name: user.name, email: user.email });
+        } else {
+          // Utilisateur non trouvé
+          response.status(404).json({ message: "Utilisateur non trouvé" });
+        }
+      })
+      .catch(error => {
+        // Erreur lors de la recherche de l'utilisateur
+        response.status(500).json({ message: "Erreur lors de la recherche de l'utilisateur", error: error });
+      });
+  } catch (error) {
+    // Jeton d'authentification invalide
+    response.status(401).json({ message: 'Authentification invalide' });
+  }
+});
+
 // authentication endpoint
 app.get("/auth-endpoint", auth, (request, response) => {
   response.json({ message: "You are authorized to access me" });
