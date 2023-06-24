@@ -129,27 +129,25 @@ app.post("/login", (request, response) => {
 
 //user-info endpoint
 app.get("/user-info", async (req, res) => {
-  // Récupérer le token d'authentification depuis l'en-tête de la requête
-  const token = req.headers.authorization.replace("Bearer ", "");
-
   try {
-    // Décoder le token pour obtenir l'identifiant de l'utilisateur
-    const decodedToken = jwt.verify(token, "your_secret_key");
-    const userId = decodedToken.userId;
-
-    // Rechercher l'utilisateur correspondant dans la base de données
-    const user = await User.findById(userId, "name email");
+    const email = req.query.email; // Récupère l'email de l'utilisateur connecté depuis les informations stockées dans le jeton d'authentification
+    
+    // Recherche de l'utilisateur dans la base de données par email
+    const user = await User.findOne({ email: email });
 
     if (user) {
-      // Renvoyer les informations de l'utilisateur dans la réponse
-      res.json({ name: user.name, email: user.email });
+      // Renvoie les informations de l'utilisateur
+      res.json({
+        name: user.name,
+        email: user.email,
+      });
     } else {
-      // Gérer le cas où l'utilisateur n'est pas trouvé
-      res.status(404).json({ error: "Utilisateur introuvable" });
+      // L'utilisateur n'a pas été trouvé
+      res.status(404).json({ error: "Utilisateur non trouvé" });
     }
   } catch (error) {
-    // Gérer les erreurs de décodage du token
-    res.status(401).json({ error: "Token d'authentification invalide" });
+    // Une erreur s'est produite lors de la recherche de l'utilisateur
+    res.status(500).json({ error: "Erreur lors de la recherche de l'utilisateur" });
   }
 });
 
