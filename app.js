@@ -127,41 +127,29 @@ app.post("/login", (request, response) => {
     });
 });
 
-//user-info endpoint 
-app.get('/user-info', (request, response) => {
-  // Vérifier si l'utilisateur est authentifié (par exemple, à l'aide d'un jeton d'authentification)
-  const token = request.headers.authorization;
-
-  if (!token) {
-    // Jeton d'authentification manquant
-    return response.status(401).json({ message: 'Authentification requise' });
-  }
+//user-info endpoint
+app.get("/user-info", async (req, res) => {
+  // Récupérer le token d'authentification depuis l'en-tête de la requête
+  const token = req.headers.authorization.replace("Bearer ", "");
 
   try {
-    // Vérifier et décoder le jeton d'authentification
-    const decodedToken = jwt.verify(token, 'your-secret-key');
-
-    // Récupérer l'ID de l'utilisateur connecté depuis le jeton d'authentification
+    // Décoder le token pour obtenir l'identifiant de l'utilisateur
+    const decodedToken = jwt.verify(token, "your_secret_key");
     const userId = decodedToken.userId;
 
     // Rechercher l'utilisateur correspondant dans la base de données
-    User.findById(userId)
-      .then(user => {
-        if (user) {
-          // Utilisateur trouvé, renvoyer ses informations
-          response.json({ name: user.name, email: user.email });
-        } else {
-          // Utilisateur non trouvé
-          response.status(404).json({ message: "Utilisateur non trouvé" });
-        }
-      })
-      .catch(error => {
-        // Erreur lors de la recherche de l'utilisateur
-        response.status(500).json({ message: "Erreur lors de la recherche de l'utilisateur", error: error });
-      });
+    const user = await User.findById(userId, "name email");
+
+    if (user) {
+      // Renvoyer les informations de l'utilisateur dans la réponse
+      res.json({ name: user.name, email: user.email });
+    } else {
+      // Gérer le cas où l'utilisateur n'est pas trouvé
+      res.status(404).json({ error: "Utilisateur introuvable" });
+    }
   } catch (error) {
-    // Jeton d'authentification invalide
-    response.status(401).json({ message: 'Authentification invalide' });
+    // Gérer les erreurs de décodage du token
+    res.status(401).json({ error: "Token d'authentification invalide" });
   }
 });
 
