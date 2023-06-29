@@ -3,6 +3,8 @@ const app = express();
 const bodyParser = require("body-parser");
 const bcrypt = require("bcrypt");
 const jwt = require("jsonwebtoken");
+const nodemailer = require("nodemailer");
+const crypto = require("crypto");
 // require database connection
 const dbConnect = require("./db/dbConnect");
 const User = require("./db/userModel");
@@ -131,7 +133,7 @@ app.post("/login", (request, response) => {
 app.get("/user-info", async (req, res) => {
   try {
     const email = req.query.email; // Récupère l'email de l'utilisateur connecté depuis les informations stockées dans le jeton d'authentification
-    
+
     // Recherche de l'utilisateur dans la base de données par email
     const user = await User.findOne({ email: email });
 
@@ -147,9 +149,137 @@ app.get("/user-info", async (req, res) => {
     }
   } catch (error) {
     // Une erreur s'est produite lors de la recherche de l'utilisateur
-    res.status(500).json({ error: "Erreur lors de la recherche de l'utilisateur" });
+    res
+      .status(500)
+      .json({ error: "Erreur lors de la recherche de l'utilisateur" });
   }
 });
+
+//forgotpassword endpoint
+app.post("/forgotpassword", async (req, res) => {
+  const { email } = req.body;
+
+  try {
+    // Vérifier si l'utilisateur existe dans la base de données
+    const user = await User.findOne({ email });
+    if (!user) {
+      return res.status(404).json({ error: "Utilisateur non trouvé" });
+    }
+
+    // Générer un jeton unique
+    const token = crypto.randomBytes(20).toString("hex");
+
+    // Mettre à jour le document utilisateur avec le jeton généré et l'expiration
+    user.resetToken = token;
+    user.resetTokenExpiration = Date.now() + 3600000; // Le jeton expirera après 1 heure (3600000 ms)
+    await user.save();
+
+    // Configurer le transporteur de messagerie pour envoyer l'e-mail
+    const transporter = nodemailer.createTransport({
+      service: "gmail",
+      auth: {
+        user: "wallacecoffi@gmail.com", // Votre adresse e-mail Gmail
+        pass: "tqmakiwpamlcukhk", // Votre mot de passe Gmail
+      },
+    });
+
+    // Créer le contenu de l'e-mail
+    const mailOptions = {
+      from: "wallacecoffi@gmail.com",
+      to: email,
+      subject: "Réinitialisation de mot de passe",
+      html: `
+        <p>Bonjour!!,</p>
+        <p>Vous avez demandé la réinitialisation de votre mot de passe. Cliquez sur le lien ci-dessous pour continuer :</p>
+        <a href="http://localhost:3002/createnewpassword/${token}">Réinitialiser le mot de passe</a>
+      `,
+    };
+
+    // Envoyer l'e-mail
+    transporter.sendMail(mailOptions, (error, info) => {
+      if (error) {
+        console.log(error);
+        res.status(500).json({
+          error: "Une erreur s'est produite lors de l'envoi de l'e-mail",
+        });
+      } else {
+        console.log("E-mail sent:", info.response);
+        res.status(200).json({
+          message: "Un e-mail de réinitialisation de mot de passe a été envoyé",
+          token,
+        });
+      }
+    });
+  } catch (error) {
+    console.log(error);
+    res.status(500).json({
+      error: "Une erreur s'est produite lors du traitement de la demande",
+    });
+  }
+});
+
+// creactenewpassword endpoint
+
+app.post("/createnewpassword/:token", async (req, res) => {
+  const { token } = req.params;
+  const { password } = req.body;
+
+  try {
+    // Trouver l'utilisateur correspondant au jeton de réinitialisation
+    const user = await User.findOne({ resetToken: token, resetTokenExpiration: { $gt: Date.now() } });
+   
+    if (!user) {
+      return res
+        .status(404)
+        .json({ error: "Jeton de réinitialisation invalide ou expiré" });
+    }
+
+    // Hacher le nouveau mot de passe
+    const hashedPassword = await bcrypt.hash(password, 10);
+
+    // Mettre à jour le mot de passe de l'utilisateur
+    user.password = hashedPassword;
+    user.resetToken = undefined;
+    user.resetTokenExpiration = undefined;
+    await user.save();
+
+    res.status(200).json({ message: "Mot de passe réinitialisé avec succès" });
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ error: "Une erreur s'est produite lors de la réinitialisation du mot de passe" });
+  }
+});
+
+
+
+
+
+// app.put('/creactenewpassword/:token', async (req, res) => {
+//   const { token } = req.params;
+//   const { password } = req.body;
+
+//   try {
+//     // Trouver l'utilisateur correspondant au jeton de réinitialisation
+//     const user = await User.findOne({ resetToken: token, resetTokenExpiration: { $gt: Date.now() } });
+
+//     if (!user) {
+//       return res.status(404).json({ error: "Jeton de réinitialisation invalide ou expiré" });
+//     }
+//     // Hacher le nouveau mot de passe
+//     const hashedPassword = await bcrypt.hash(password, 10);
+
+//     // Mettre à jour le mot de passe de l'utilisateur
+//     user.password = hashedPassword;
+//     user.resetToken = undefined;
+//     user.resetTokenExpiration = undefined;
+//     await user.save();
+
+//     res.status(200).json({ message: "Mot de passe réinitialisé avec succès" });
+//   } catch (error) {
+//     console.error(error);
+//     res.status(500).json({ error: "Une erreur s'est produite lors de la réinitialisation du mot de passe" });
+//   }
+// });
 
 // authentication endpoint
 app.get("/auth-endpoint", auth, (request, response) => {
