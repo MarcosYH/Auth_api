@@ -5,6 +5,7 @@ const bcrypt = require("bcrypt");
 const jwt = require("jsonwebtoken");
 const nodemailer = require("nodemailer");
 const crypto = require("crypto");
+const cors = require("cors");
 // require database connection
 const dbConnect = require("./db/dbConnect");
 const User = require("./db/userModel");
@@ -13,6 +14,7 @@ const auth = require("./auth");
 dbConnect();
 
 // Curb Cores Error by adding a header here
+app.use(cors());
 app.use((req, res, next) => {
   res.setHeader("Access-Control-Allow-Origin", "*");
   res.setHeader(
@@ -189,10 +191,73 @@ app.post("/forgotpassword", async (req, res) => {
       to: email,
       subject: "Réinitialisation de mot de passe",
       html: `
-        <p>Bonjour!!,</p>
-        <p>Vous avez demandé la réinitialisation de votre mot de passe. Cliquez sur le lien ci-dessous pour continuer :</p>
-        <a href="http://localhost:3002/createnewpassword/${token}">Réinitialiser le mot de passe</a>
-      `,
+      <!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Réinitialisation de mot de passe</title>
+    <style>
+        body {
+            margin: 0;
+            padding: 0;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            background-color: #f1f1f1;
+        }
+        
+        .container {
+            text-align: center;
+            max-width: 600px;
+            padding: 20px;
+            background-color: #ffffff;
+            border-radius: 5px;
+        }
+        
+        h1 {
+            margin: 0;
+            line-height: 24px;
+            font-family: Arial, 'Helvetica Neue', Helvetica, sans-serif;
+            font-size: 20px;
+            font-style: normal;
+            font-weight: normal;
+            color: #333333;
+        }
+        
+        p {
+            margin: 0;
+            -webkit-text-size-adjust: none;
+            -ms-text-size-adjust: none;
+            font-family: Helvetica, 'Helvetica Neue', Arial, verdana, sans-serif;
+            line-height: 24px;
+            color: #666666;
+            font-size: 16px;
+        }
+        
+        .button {
+            display: inline-block;
+            margin-top: 20px;
+            padding: 10px 20px;
+            background-color: #007bff;
+            color: #ffffff;
+            text-decoration: none;
+            border-radius: 5px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <img src="https://sikiyi.stripocdn.email/content/guids/CABINET_dd354a98a803b60e2f0411e893c82f56/images/23891556799905703.png" alt="img" width="175">
+        <h1><strong>VOUS AVEZ OUBLIÉ VOTRE MOT DE PASSE ?</strong></h1>
+        <p>Hey👋!</p>
+        <p>Vous avez demandé la réinitialisation de votre mot de passe. Veuillez cliquer sur le bouton ci-dessous pour modifier votre mot de passe :</p>
+        <a class="button" href="https://auth-api-adk2.onrender.com/createnewpassword/${token}" target="_blank">RÉINITIALISER LE MOT DE PASSE</a>
+    </div>
+</body>
+</html>
+         `,
     };
 
     // Envoyer l'e-mail
@@ -226,8 +291,11 @@ app.post("/createnewpassword/:token", async (req, res) => {
 
   try {
     // Trouver l'utilisateur correspondant au jeton de réinitialisation
-    const user = await User.findOne({ resetToken: token, resetTokenExpiration: { $gt: Date.now() } });
-   
+    const user = await User.findOne({
+      resetToken: token,
+      resetTokenExpiration: { $gt: Date.now() },
+    });
+
     if (!user) {
       return res
         .status(404)
@@ -246,13 +314,14 @@ app.post("/createnewpassword/:token", async (req, res) => {
     res.status(200).json({ message: "Mot de passe réinitialisé avec succès" });
   } catch (error) {
     console.error(error);
-    res.status(500).json({ error: "Une erreur s'est produite lors de la réinitialisation du mot de passe" });
+    res
+      .status(500)
+      .json({
+        error:
+          "Une erreur s'est produite lors de la réinitialisation du mot de passe",
+      });
   }
 });
-
-
-
-
 
 // app.put('/creactenewpassword/:token', async (req, res) => {
 //   const { token } = req.params;
