@@ -244,6 +244,9 @@ app.post("/forgotpassword", async (req, res) => {
             text-decoration: none;
             border-radius: 5px;
         }
+        a{
+          color: #ffffff;  
+      }
     </style>
 </head>
 <body>
