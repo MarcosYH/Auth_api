@@ -196,7 +196,6 @@ app.post("/forgotpassword", async (req, res) => {
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Réinitialisation de mot de passe</title>
     <style>
         body {
             margin: 0;
@@ -253,11 +252,11 @@ app.post("/forgotpassword", async (req, res) => {
         <h1><strong>VOUS AVEZ OUBLIÉ VOTRE MOT DE PASSE ?</strong></h1>
         <p>Hey👋!</p>
         <p>Vous avez demandé la réinitialisation de votre mot de passe. Veuillez cliquer sur le bouton ci-dessous pour modifier votre mot de passe :</p>
-        <a class="button" href="https://auth-api-adk2.onrender.com/createnewpassword/${token}" target="_blank">RÉINITIALISER LE MOT DE PASSE</a>
+        <a class="button" href="https://authentification-eight.vercel.app/createnewpassword/${token}" target="_blank">RÉINITIALISER LE MOT DE PASSE</a>
     </div>
 </body>
 </html>
-         `,
+        `,
     };
 
     // Envoyer l'e-mail
@@ -314,12 +313,10 @@ app.post("/createnewpassword/:token", async (req, res) => {
     res.status(200).json({ message: "Mot de passe réinitialisé avec succès" });
   } catch (error) {
     console.error(error);
-    res
-      .status(500)
-      .json({
-        error:
-          "Une erreur s'est produite lors de la réinitialisation du mot de passe",
-      });
+    res.status(500).json({
+      error:
+        "Une erreur s'est produite lors de la réinitialisation du mot de passe",
+    });
   }
 });
 
