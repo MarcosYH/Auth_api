@@ -28,7 +28,7 @@ app.use((req, res, next) => {
   next();
 });
 
-// body parser configuration
+// body parser configuration (Middleware)
 app.use(bodyParser.json());
 app.use(bodyParser.urlencoded({ extended: true }));
 
