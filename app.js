@@ -49,7 +49,6 @@ app.post("/register", (request, response) => {
         email: request.body.email,
         password: hashedPassword,
       });
-
       // save the new user
       user
         .save()
@@ -323,32 +322,13 @@ app.post("/createnewpassword/:token", async (req, res) => {
   }
 });
 
-// app.put('/creactenewpassword/:token', async (req, res) => {
-//   const { token } = req.params;
-//   const { password } = req.body;
+// Login google endpoint
+app.post('/logingoogle', (req, res) => {
 
-//   try {
-//     // Trouver l'utilisateur correspondant au jeton de réinitialisation
-//     const user = await User.findOne({ resetToken: token, resetTokenExpiration: { $gt: Date.now() } });
 
-//     if (!user) {
-//       return res.status(404).json({ error: "Jeton de réinitialisation invalide ou expiré" });
-//     }
-//     // Hacher le nouveau mot de passe
-//     const hashedPassword = await bcrypt.hash(password, 10);
+});
 
-//     // Mettre à jour le mot de passe de l'utilisateur
-//     user.password = hashedPassword;
-//     user.resetToken = undefined;
-//     user.resetTokenExpiration = undefined;
-//     await user.save();
 
-//     res.status(200).json({ message: "Mot de passe réinitialisé avec succès" });
-//   } catch (error) {
-//     console.error(error);
-//     res.status(500).json({ error: "Une erreur s'est produite lors de la réinitialisation du mot de passe" });
-//   }
-// });
 
 // authentication endpoint
 app.get("/auth-endpoint", auth, (request, response) => {
