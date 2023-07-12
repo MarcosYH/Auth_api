@@ -124,8 +124,8 @@ app.get("/auth/google/callback", async function (req, res, next) {
         )
         user.token=token;
         // user.token=token;
-        res.cookie("TOKEN", token);
-        res.cookie("EMAIL", user.email);
+        res.cookie("TOKEN", token, { httpOnly: true });
+        res.cookie("EMAIL", user.email, { httpOnly: true });
 
       // // catch error if the new user wasn't added successfully to the database
       // .catch((error) => {
