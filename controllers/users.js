@@ -301,7 +301,7 @@ exports.createnewpassword = async (req, res) => {
 
 // login with google function
 exports.loginGoogle = async function (req, res, next) {
-  const redirectURL = "http://localhost:3000/auth/google/callback";
+  const redirectURL = "https://auth-api-adk2.onrender.com/auth/google/callback";
 
   const oAuth2Client = new OAuth2Client(
     process.env.GOOGLE_CLIENT_ID,
@@ -324,7 +324,7 @@ exports.callbackAfterloginGoogle = async function (req, res, next) {
   const code = req.query.code;
 
   try {
-    const redirectURL = "http://localhost:3000/auth/google/callback";
+    const redirectURL = "https://auth-api-adk2.onrender.com/auth/google/callback";
     const oAuth2Client = new OAuth2Client(
       process.env.GOOGLE_CLIENT_ID,
       process.env.GOOGLE_CLIENT_SECRET,
@@ -380,9 +380,9 @@ exports.callbackAfterloginGoogle = async function (req, res, next) {
     //   console.log(error, "Error creating user");
     // });
     console.log(data);
-    res.redirect("http://localhost:3001/welcome");
+    res.redirect("https://authentification-eight.vercel.app/welcome");
   } catch (err) {
     console.log("Error logging in with OAuth2 user", err);
-    res.redirect("http://localhost:3001/error");
+    res.redirect("https://authentification-eight.vercel.app/error");
   }
 };
