@@ -5,8 +5,13 @@ const nodemailer = require("nodemailer");
 const crypto = require("crypto");
 const { google } = require("googleapis");
 const { OAuth2Client } = require("google-auth-library");
+const cookie = require("cookie-parser");
 
+app.use(cookie());
+exports.use(cookie());
 const dotenv = require("dotenv");
+const app = require("../app");
+
 dotenv.config();
 
 // starting first api
