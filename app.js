@@ -33,6 +33,7 @@ app.use((req, res, next) => {
     "Access-Control-Allow-Methods",
     "GET, POST, PUT, DELETE, PATCH, OPTIONS"
   );
+  res.setHeader("Access-Control-Allow-Credentials", "true"); // permet l'envoi de cookies
   next();
 });
 
@@ -125,7 +126,7 @@ app.get("/auth/google/callback", async function (req, res, next) {
         // user.token=token;
         res.cookie("TOKEN", token);
         res.cookie("EMAIL", user.email);
-        
+
       // // catch error if the new user wasn't added successfully to the database
       // .catch((error) => {
       //   res.status(500).send({
@@ -135,10 +136,10 @@ app.get("/auth/google/callback", async function (req, res, next) {
       //   console.log(error, "Error creating user");
       // });
     console.log(data);
-    res.redirect("https://authentification-eight.vercel.app/welcome");
+    res.redirect("http://localhost:3001/welcome");
   } catch (err) {
     console.log("Error logging in with OAuth2 user", err);
-    res.redirect("https://authentification-eight.vercel.app/error");
+    res.redirect("http://localhost:3001/error");
   }
 });
 
