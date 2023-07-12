@@ -5,6 +5,7 @@ const nodemailer = require("nodemailer");
 const crypto = require("crypto");
 const { google } = require("googleapis");
 const { OAuth2Client } = require("google-auth-library");
+
 const dotenv = require("dotenv");
 dotenv.config();
 
@@ -302,10 +303,12 @@ exports.createnewpassword = async (req, res) => {
 // login with google function
 exports.loginGoogle = async function (req, res, next) {
   const redirectURL = "https://auth-api-adk2.onrender.com/auth/google/callback";
+  const GOOGLE_CLIENT_ID = "881382327006-7mbuorq3in23d3so4n6n6l1n4a4ni5ga.apps.googleusercontent.com";
+  const GOOGLE_CLIENT_SECRET = "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";
 
   const oAuth2Client = new OAuth2Client(
-    process.env.GOOGLE_CLIENT_ID,
-    process.env.GOOGLE_CLIENT_SECRET,
+    GOOGLE_CLIENT_ID,
+    GOOGLE_CLIENT_SECRET,
     redirectURL
   );
 
