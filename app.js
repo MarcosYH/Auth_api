@@ -6,13 +6,25 @@ const jwt = require("jsonwebtoken");
 const nodemailer = require("nodemailer");
 const crypto = require("crypto");
 const cors = require("cors");
+const axios = require("axios");
+const cookie = require("cookie-parser");
 // require database connection
 const dbConnect = require("./db/dbConnect");
 const User = require("./db/userModel");
 const auth = require("./auth");
+const { google } = require("googleapis");
+
+const dotenv = require("dotenv");
+const { OAuth2Client } = require("google-auth-library");
+// const passport = require('passport');
+// const GoogleStrategy = require('passport-google-oauth20').Strategy;
+
+dotenv.config(); // Load environment variables from .env file
+
 // execute database connection
 dbConnect();
 
+app.use(cookie());
 // Curb Cores Error by adding a header here
 app.use(cors());
 app.use((req, res, next) => {
@@ -104,8 +116,9 @@ app.post("/login", (request, response) => {
             },
             "RANDOM-TOKEN",
             { expiresIn: "24h" }
-          );
-
+          )
+          user.token=token;
+          user.save();
           //   return success response
           response.status(200).send({
             message: "Login Successful",
@@ -285,7 +298,6 @@ app.post("/forgotpassword", async (req, res) => {
 });
 
 // creactenewpassword endpoint
-
 app.post("/createnewpassword/:token", async (req, res) => {
   const { token } = req.params;
   const { password } = req.body;
@@ -322,13 +334,140 @@ app.post("/createnewpassword/:token", async (req, res) => {
   }
 });
 
-// Login google endpoint
-app.post('/logingoogle', (req, res) => {
+/* GET users listing. */
+app.post("/auth/google", async function (req, res, next) {
+  const redirectURL = "http://localhost:3000/auth/google/callback";
 
+  const oAuth2Client = new OAuth2Client(
+    process.env.GOOGLE_CLIENT_ID,
+    process.env.GOOGLE_CLIENT_SECRET,
+    redirectURL
+  );
 
+  // Generate the url that will be used for the consent dialog.
+  const authorizeUrl = oAuth2Client.generateAuthUrl({
+    access_type: "offline",
+    scope: ["https://www.googleapis.com/auth/userinfo.profile  openid ", "https://www.googleapis.com/auth/userinfo.email"],
+    prompt: "consent",
+  });
+
+  res.json({ url: authorizeUrl });
 });
 
+// Route de rappel après l'authentification avec Google
+app.get("/auth/google/callback", async function (req, res, next) {
+  const code = req.query.code;
 
+  try {
+    const redirectURL = "http://localhost:3000/auth/google/callback";
+    const oAuth2Client = new OAuth2Client(
+      process.env.GOOGLE_CLIENT_ID,
+      process.env.GOOGLE_CLIENT_SECRET,
+      redirectURL
+    );
+
+    const { tokens } = await oAuth2Client.getToken(code);
+    await oAuth2Client.setCredentials(tokens);
+    console.info("Tokens acquired.");
+
+    // j'utilise l'API Google pour obtenir les informations de l'utilisateur
+    const oauth2 = google.oauth2({
+      auth: oAuth2Client,
+      version: "v2",
+    });
+    const { data } = await oauth2.userinfo.get();
+    const {id, name, email } = data;
+    // Utilisez le nom et l'email de l'utilisateur pour effectuer des opérations
+    // telles que l'enregistrement dans la base de données
+
+    const user = new User({
+      name: name,
+      email: email,
+      googleID: id,
+    });
+    // save the new user
+    user.save()
+      // return success if the new user is added to the database successfully
+      .then((result) => {
+        //   create JWT token
+        console.log(result, "User Created Successfully");
+      })
+      const token = jwt.sign(
+        {
+          userId: user._id,
+          userEmail: user.email,
+        },
+        "RANDOM-TOKEN",
+        { expiresIn: "24h" }
+        )
+        user.token=token;
+        // user.token=token;
+        res.cookie("TOKEN", token);
+        res.cookie("EMAIL", user.email);
+        
+      // // catch error if the new user wasn't added successfully to the database
+      // .catch((error) => {
+      //   res.status(500).send({
+      //     message: "Error creating user",
+      //     error,
+      //   });
+      //   console.log(error, "Error creating user");
+      // });
+    console.log(data);
+    res.redirect("http://localhost:3001/welcome");
+  } catch (err) {
+    console.log("Error logging in with OAuth2 user", err);
+    res.redirect("http://localhost:3001/error");
+  }
+});
+
+// Route de rappel après l'authentification avec Google
+// app.get("/auth/google/callback", async (req, res) => {
+
+// });
+
+
+
+// Configuration des informations d'identification OAuth 2.0
+const CLIENT_ID = '881382327006-7mbuorq3in23d3so4n6n6l1n4a4ni5ga.apps.googleusercontent.com';
+const CLIENT_SECRET = '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';
+const REDIRECT_URI = 'http://localhost:3000/auth/google/callback';
+
+// Configuration de l'API Gmail
+const SCOPES = ['https://www.googleapis.com/auth/gmail.readonly', 'https://www.googleapis.com/auth/gmail.modify'];
+const gmail = google.gmail('v1');
+
+// Route pour obtenir le jeton d'accès OAuth 2.0
+// app.get('/auth/google/callback', (req, res) => {
+//   const code = req.query.code;
+
+//   // Échange du code d'autorisation avec un jeton d'accès
+//   const oAuth2Client = new google.auth.OAuth2(CLIENT_ID, CLIENT_SECRET, REDIRECT_URI);
+//   oAuth2Client.getToken(code, (err, token) => {
+//     if (err) {
+//       console.error('Erreur lors de lobtention du jeton daccès :', err);
+//       return res.status(500).json({ error: 'Erreur lors de lobtention du jeton daccès' });
+//     }
+
+//     // Enregistrement du jeton d'accès dans l'objet oAuth2Client pour les appels ultérieurs
+//     oAuth2Client.setCredentials(token);
+
+//     // Récupération des informations du compte Gmail
+//     gmail.users.getProfile({ auth: oAuth2Client, userId: 'me' }, (err, response) => {
+//       if (err) {
+//         console.error('Erreur lors de la récupération des informations du compte Gmail :', err);
+//         return res.status(500).json({ error: 'Erreur lors de la récupération des informations du compte Gmail' });
+//       }
+
+//       // Renvoyer les informations du compte Gmail en tant que réponse JSON
+//       res.json(response.data);
+//     });
+//   });
+// });
+
+
+// Login google endpoint
+app.post("/logingoogle", (req, res) => {});
 
 // authentication endpoint
 app.get("/auth-endpoint", auth, (request, response) => {

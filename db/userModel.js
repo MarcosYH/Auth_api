@@ -11,10 +11,9 @@ const UserSchema = new mongoose.Schema({
     required: [true, "Please provide an Email!"],
     unique: [true, "Email Exist"],
   },
-
   password: {
     type: String,
-    required: [true, "Please provide a password!"],
+    required: [false, "Not neccessary because googlelogin don't use"],
     unique: false,
   },
   resetToken: {
@@ -25,6 +24,15 @@ const UserSchema = new mongoose.Schema({
     type: Date,
     default: null,
   },
+  googleID: {
+    type: String,
+    default: null,
+  },
+ token: {
+    type: String,
+    default: null,
+  },
+
 });
 
 module.exports = mongoose.model.Users || mongoose.model("Users", UserSchema);
