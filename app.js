@@ -43,5 +43,4 @@ app.use(bodyParser.urlencoded({ extended: true }));
 
 app.use("/", userRoutes);
 
-
 module.exports = app;

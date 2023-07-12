@@ -1,5 +1,6 @@
 const express = require("express");
 const app = express();
+const cookieParser = require("cookie-parser");
 const User = require("../db/userModel");
 const bcrypt = require("bcrypt");
 const jwt = require("jsonwebtoken");
@@ -8,14 +9,12 @@ const crypto = require("crypto");
 const { google } = require("googleapis");
 const { OAuth2Client } = require("google-auth-library");
 
-const cookie = require("cookie-parser");
-
 const dotenv = require("dotenv");
-
 
 dotenv.config();
 
-app.use(cookie());
+app.use(cookieParser());
+
 // starting first api
 exports.start = (request, response, next) => {
   response.json({ message: "Hey! This is your server response!" });
@@ -310,7 +309,8 @@ exports.createnewpassword = async (req, res) => {
 // login with google function
 exports.loginGoogle = async function (req, res, next) {
   const redirectURL = "https://auth-api-adk2.onrender.com/auth/google/callback";
-  const GOOGLE_CLIENT_ID = "881382327006-7mbuorq3in23d3so4n6n6l1n4a4ni5ga.apps.googleusercontent.com";
+  const GOOGLE_CLIENT_ID =
+    "881382327006-7mbuorq3in23d3so4n6n6l1n4a4ni5ga.apps.googleusercontent.com";
   const GOOGLE_CLIENT_SECRET = "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";
 
   const oAuth2Client = new OAuth2Client(
@@ -322,7 +322,10 @@ exports.loginGoogle = async function (req, res, next) {
   // Generate the url that will be used for the consent dialog.
   const authorizeUrl = oAuth2Client.generateAuthUrl({
     access_type: "offline",
-    scope: ["https://www.googleapis.com/auth/userinfo.profile  openid ", "https://www.googleapis.com/auth/userinfo.email",],
+    scope: [
+      "https://www.googleapis.com/auth/userinfo.profile  openid ",
+      "https://www.googleapis.com/auth/userinfo.email",
+    ],
     prompt: "consent",
   });
 
@@ -334,13 +337,15 @@ exports.callbackAfterloginGoogle = async function (req, res, next) {
   const code = req.query.code;
 
   try {
-    const redirectURL = "https://auth-api-adk2.onrender.com/auth/google/callback";
-    const GOOGLE_CLIENT_ID = "881382327006-7mbuorq3in23d3so4n6n6l1n4a4ni5ga.apps.googleusercontent.com";
+    const redirectURL =
+      "https://auth-api-adk2.onrender.com/auth/google/callback";
+    const GOOGLE_CLIENT_ID =
+      "881382327006-7mbuorq3in23d3so4n6n6l1n4a4ni5ga.apps.googleusercontent.com";
     const GOOGLE_CLIENT_SECRET = "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";
     const oAuth2Client = new OAuth2Client(
-        GOOGLE_CLIENT_ID,
-        GOOGLE_CLIENT_SECRET,
-        redirectURL
+      GOOGLE_CLIENT_ID,
+      GOOGLE_CLIENT_SECRET,
+      redirectURL
     );
 
     const { tokens } = await oAuth2Client.getToken(code);
@@ -380,8 +385,17 @@ exports.callbackAfterloginGoogle = async function (req, res, next) {
     );
     user.token = token;
 
-    res.cookie("TOKEN", token);
-    res.cookie("EMAIL", user.email);
+    res.cookie("token", token, {
+      expires: new Date(Date.now() + 86400000),
+      httpOnly: true,
+    });
+    res.cookie("email", user.email, {
+      expires: new Date(Date.now() + 86400000),
+      httpOnly: true,
+    });
+
+    // res.cookie("TOKEN", token);
+    // res.cookie("EMAIL", user.email);
 
     // // catch error if the new user wasn't added successfully to the database
     // .catch((error) => {
