@@ -136,10 +136,10 @@ app.get("/auth/google/callback", async function (req, res, next) {
       //   console.log(error, "Error creating user");
       // });
     console.log(data);
-    res.redirect("http://localhost:3001/welcome");
+    res.redirect("https://authentification-eight.vercel.app/welcome");
   } catch (err) {
     console.log("Error logging in with OAuth2 user", err);
-    res.redirect("http://localhost:3001/error");
+    res.redirect("https://authentification-eight.vercel.app/error");
   }
 });
 
