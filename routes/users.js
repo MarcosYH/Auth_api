@@ -1,8 +1,10 @@
 const express = require("express");
 const router = express.Router();
+const cookieParser = require("cookie-parser");
 
 const usersController = require("../controllers/users")
 
+router.use(cookieParser());
 router.get("/", usersController.start)
 
 router.post("/register", usersController.registerUser);
