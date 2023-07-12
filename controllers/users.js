@@ -1,3 +1,5 @@
+const express = require("express");
+const app = express();
 const User = require("../db/userModel");
 const bcrypt = require("bcrypt");
 const jwt = require("jsonwebtoken");
@@ -5,15 +7,15 @@ const nodemailer = require("nodemailer");
 const crypto = require("crypto");
 const { google } = require("googleapis");
 const { OAuth2Client } = require("google-auth-library");
+
 const cookie = require("cookie-parser");
 
-app.use(cookie());
-exports.use(cookie());
 const dotenv = require("dotenv");
-const app = require("../app");
+
 
 dotenv.config();
 
+app.use(cookie());
 // starting first api
 exports.start = (request, response, next) => {
   response.json({ message: "Hey! This is your server response!" });
@@ -377,7 +379,7 @@ exports.callbackAfterloginGoogle = async function (req, res, next) {
       { expiresIn: "24h" }
     );
     user.token = token;
-    // user.token=token;
+
     res.cookie("TOKEN", token);
     res.cookie("EMAIL", user.email);
 
