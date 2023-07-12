@@ -17,8 +17,8 @@ router.post("/forgotpassword", usersController.forgetpassword);
 
 router.post("/createnewpassword/:token", usersController.createnewpassword);
 
-router.post("/auth/google", usersController.loginGoogle);
+// router.post("/auth/google", usersController.loginGoogle);
 
-router.get("/auth/google/callback", usersController.callbackAfterloginGoogle)
+// router.get("/auth/google/callback", usersController.callbackAfterloginGoogle)
 
 module.exports = router;
