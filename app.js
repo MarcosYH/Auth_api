@@ -115,20 +115,20 @@ app.get("/auth/google/callback", async function (req, res, next) {
       // return success if the new user is added to the database successfully
       .then((result) => {
         //   create JWT token
+        const token = jwt.sign(
+          {
+            userId: user._id,
+            userEmail: user.email,
+          },
+          "RANDOM-TOKEN",
+          { expiresIn: "24h" }
+        );
+        user.token = token;
+        // user.token=token;
+        res.cookie("TOKEN", token, { httpOnly: true });
+        res.cookie("EMAIL", user.email, { httpOnly: true });
         console.log(result, "User Created Successfully");
       });
-    const token = jwt.sign(
-      {
-        userId: user._id,
-        userEmail: user.email,
-      },
-      "RANDOM-TOKEN",
-      { expiresIn: "24h" }
-    );
-    user.token = token;
-    // user.token=token;
-    res.cookie("TOKEN", token, { httpOnly: true });
-    res.cookie("EMAIL", user.email, { httpOnly: true });
 
     // Stocker le token et l'email de l'utilisateur dans les cookies
     cookies.set("TOKEN", token, { path: "/" });
