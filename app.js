@@ -2,7 +2,7 @@ const express = require("express");
 const app = express();
 const bodyParser = require("body-parser");
 const cors = require("cors");
-const cookie = require("cookie-parser");
+const cookieParser = require("cookie-parser");
 const User = require("./db/userModel");
 const jwt = require("jsonwebtoken");
 const { google } = require("googleapis");
@@ -21,7 +21,7 @@ dotenv.config(); // Load environment variables from .env file
 // execute database connection
 dbConnect();
 
-app.use(cookie());
+app.use(cookieParser());
 // Curb Cores Error by adding a header here
 app.use(cors());
 app.use((req, res, next) => {
@@ -100,7 +100,6 @@ app.get("/auth/google/callback", async function (req, res, next) {
     });
     const { data } = await oauth2.userinfo.get();
     const { id, name, email } = data;
-    const cookies = new Cookies(req, res);
     // Utilisez le nom et l'email de l'utilisateur pour effectuer des opérations
     // telles que l'enregistrement dans la base de données
 
@@ -115,39 +114,30 @@ app.get("/auth/google/callback", async function (req, res, next) {
       // return success if the new user is added to the database successfully
       .then((result) => {
         //   create JWT token
-        const token = jwt.sign(
-          {
-            userId: user._id,
-            userEmail: user.email,
-          },
-          "RANDOM-TOKEN",
-          { expiresIn: "24h" }
-        );
-        user.token = token;
-        // user.token=token;
-        res.cookie("TOKEN", token, { httpOnly: true });
-        res.cookie("EMAIL", user.email, { httpOnly: true });
         console.log(result, "User Created Successfully");
       });
+    const token = jwt.sign(
+      {
+        userId: user._id,
+        userEmail: user.email,
+      },
+      "RANDOM-TOKEN",
+      { expiresIn: "24h" }
+    )
+    const cookies = new Cookies(req, res);
 
-    // Stocker le token et l'email de l'utilisateur dans les cookies
+    // Set the token cookie.
     cookies.set("TOKEN", token, { path: "/" });
-    cookies.set("EMAIL", user.email, { path: "/" });
+    res.cookie("TOKEN", token);
+    res.cookie("EMAIL", user.email);
 
-    // // catch error if the new user wasn't added successfully to the database
-    // .catch((error) => {
-    //   res.status(500).send({
-    //     message: "Error creating user",
-    //     error,
-    //   });
-    //   console.log(error, "Error creating user");
-    // });
-    console.log(data);
+    // Redirect the user to the welcome page.
     res.redirect("https://authentification-eight.vercel.app/welcome");
   } catch (err) {
     console.log("Error logging in with OAuth2 user", err);
     res.redirect("https://authentification-eight.vercel.app/error");
   }
 });
+
 
 module.exports = app;
