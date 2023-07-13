@@ -120,10 +120,10 @@ exports.loginUser = (request, response) => {
 //user-info function
 exports.usersInfo = async (req, res) => {
   try {
-    const token = req.query.token; // Récupère l'email de l'utilisateur connecté depuis les informations stockées dans le jeton d'authentification
+    const token = req.query.token; 
 
     // Recherche de l'utilisateur dans la base de données par email
-    const user = await User.findOne({ email: token });
+    const user = await User.findOne({ token: token });
 
     if (user) {
       // Renvoie les informations de l'utilisateur
