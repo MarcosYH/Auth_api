@@ -31,7 +31,8 @@ exports.registerUser = (request, response) => {
     .then((hashedPassword) => {
       // create a new user instance and collect the data
       const user = new User({
-        name: request.body.name,
+        lastname: request.body.lastname,
+        firstname: request.body.firstname,
         email: request.body.email,
         password: hashedPassword,
       });
@@ -120,7 +121,7 @@ exports.loginUser = (request, response) => {
 //user-info function
 exports.usersInfo = async (req, res) => {
   try {
-    const token = req.query.token; 
+    const token = req.query.token;
 
     // Recherche de l'utilisateur dans la base de données par email
     const user = await User.findOne({ token: token });
@@ -310,7 +311,6 @@ exports.createnewpassword = async (req, res) => {
 
 // login with google function
 exports.loginGoogle = async function (req, res, next) {
-
   const redirectURL = "https://auth-api-adk2.onrender.com/auth/google/callback";
   const GOOGLE_CLIENT_ID =
     "881382327006-7mbuorq3in23d3so4n6n6l1n4a4ni5ga.apps.googleusercontent.com";

@@ -1,10 +1,15 @@
 const mongoose = require("mongoose");
 
 const UserSchema = new mongoose.Schema({
-  name: {
+  lastname: {
     type: "string",
     required: true,
-    unique: [true, "Name Exist"],
+    unique: [true, "lastname Exist"],
+  },
+  firstname: {
+    type: "string",
+    required: true,
+    unique: [true, "firstname Exist"],
   },
   email: {
     type: String,
@@ -28,11 +33,10 @@ const UserSchema = new mongoose.Schema({
     type: String,
     default: null,
   },
- token: {
+  token: {
     type: String,
     default: null,
   },
-
 });
 
 module.exports = mongoose.model.Users || mongoose.model("Users", UserSchema);
