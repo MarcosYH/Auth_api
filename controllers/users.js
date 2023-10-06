@@ -52,6 +52,7 @@ exports.registerUser = (request, response) => {
             message: "Error creating user",
             error,
           });
+          console.log(error)
         });
     })
     // catch error if the password hash isn't successful
@@ -64,7 +65,7 @@ exports.registerUser = (request, response) => {
 };
 
 //login function
-exports.loginUser = (request, response) => {
+exports.loginUser = (request, response) => { 
   // check if email exists
   User.findOne({ email: request.body.email })
 
